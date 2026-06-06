@@ -2,6 +2,31 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import find_dotenv, load_dotenv
+
+
+def load_project_env(env_file: str | Path | None = None, *, override: bool = False) -> str | None:
+    """Load local .env configuration without overriding exported shell variables."""
+
+    requested_env_file = env_file or os.getenv("EVALS_ENV_FILE")
+    if requested_env_file:
+        resolved_env_file = Path(requested_env_file)
+        if not resolved_env_file.exists():
+            return None
+        load_dotenv(resolved_env_file, override=override)
+        return str(resolved_env_file)
+
+    discovered_env_file = find_dotenv(".env", usecwd=True)
+    if not discovered_env_file:
+        return None
+
+    load_dotenv(discovered_env_file, override=override)
+    return discovered_env_file
+
+
+load_project_env()
 
 
 @dataclass(frozen=True)
